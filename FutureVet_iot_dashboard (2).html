@@ -147,15 +147,6 @@
   .api-badge.ok { background: var(--green-bg); color: var(--green); }
   .api-badge.err { background: var(--red-bg); color: var(--red); }
 
-  .icon-btn {
-    width: 34px; height: 34px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--r-sm); color: var(--muted);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 13px; transition: all .2s;
-  }
-  .icon-btn:hover { color: var(--text); }
-
   .clock-badge {
     font-size: 12px; font-weight: 500; color: var(--secondary);
     padding: 6px 10px;
@@ -180,15 +171,6 @@
     text-transform: uppercase; letter-spacing: 0.8px;
     display: flex; align-items: center; gap: 6px;
   }
-  .expand-btn {
-    width: 28px; height: 28px;
-    background: var(--surface2); border: none;
-    border-radius: 8px; color: var(--muted);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 11px; transition: all .2s;
-  }
-  .expand-btn:hover { color: var(--text); }
-
   /* ── Stats grid ── */
   .stats-grid {
     display: grid;
@@ -299,15 +281,6 @@
   }
   .log-hd-left  { display: flex; align-items: center; gap: 12px; }
   .log-hd-right { display: flex; align-items: center; gap: 10px; }
-  .log-tabs { display: flex; gap: 6px; }
-  .log-tab {
-    padding: 5px 13px; border-radius: 8px;
-    font-size: 12px; font-weight: 500;
-    border: none; cursor: pointer; transition: all .2s;
-    background: transparent; color: var(--muted);
-  }
-  .log-tab.active { background: var(--accent-bg); color: var(--accent); }
-
   .log-tbl { width: 100%; border-collapse: collapse; }
   .log-tbl th {
     font-size: 10px; font-weight: 600; color: var(--muted);
@@ -417,8 +390,6 @@
       </div>
       <div class="api-badge err" id="api-badge">API: offline</div>
       <div class="divider-v"></div>
-      <div class="icon-btn"><i class="fa-solid fa-gear"></i></div>
-      <div class="icon-btn"><i class="fa-solid fa-bell"></i></div>
       <div class="clock-badge" id="clock">--:--:--</div>
     </div>
   </div>
@@ -436,7 +407,6 @@
       <div class="stat-footer">
         <div class="stat-badge ok" id="temp-st">— aguardando</div>
       </div>
-      <div class="stat-sub">Temperatura corporal do pet</div>
     </div>
 
     <!-- Freq. Cardíaca -->
@@ -491,7 +461,6 @@
           <div class="card-lbl"><i class="fa-solid fa-chart-line"></i> Freq. Cardíaca — Histórico</div>
           <div class="chart-meta" id="data-source-tag">aguardando dados…</div>
         </div>
-        <button class="expand-btn"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>
       </div>
       <svg id="hchart" class="linechart" viewBox="0 0 520 110" height="110">
         <line x1="0" y1="22" x2="520" y2="22" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
@@ -522,7 +491,6 @@
         <div class="card-lbl">
           <i class="fa-solid fa-triangle-exclamation"></i> Alertas do Sensor
         </div>
-        <button class="expand-btn"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>
       </div>
       <div class="alert-list" id="alert-list">
         <div class="alert-item">
@@ -541,7 +509,6 @@
         <div class="card-lbl">
           <i class="fa-solid fa-calendar-week"></i> Atividade Semanal
         </div>
-        <span class="src-badge src-real">ADXL345</span>
       </div>
       <div class="hm-lbl-row">
         <div class="hml">Dom</div><div class="hml">Seg</div><div class="hml">Ter</div>
@@ -566,7 +533,6 @@
         <div class="card-lbl">
           <i class="fa-solid fa-shield-heart"></i> Score de Saúde
         </div>
-        <button class="expand-btn"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>
       </div>
       <div class="score-wrap">
         <div class="donut-container">
@@ -592,11 +558,6 @@
     <div class="log-hd-row">
       <div class="log-hd-left">
         <div class="card-lbl"><i class="fa-solid fa-terminal"></i> Log MQTT / HTTP</div>
-        <div class="log-tabs">
-          <button class="log-tab active">Todos</button>
-          <button class="log-tab">MQTT</button>
-          <button class="log-tab">HTTP</button>
-        </div>
       </div>
       <div class="log-hd-right">
         <span class="src-badge src-real" id="log-src">API Real</span>
@@ -623,7 +584,6 @@
     <div class="footer-info">
       <div>Dispositivo: <strong>ESP32-S3 · FutureVet Collar v1.2</strong></div>
       <div>Broker: <strong>localhost:8080 → HiveMQ</strong></div>
-      <div>QoS: <strong>1</strong></div>
       <div>Protocolo: <strong>MQTT + HTTP REST</strong></div>
       <div>Fonte: <strong id="footer-src">—</strong></div>
     </div>
