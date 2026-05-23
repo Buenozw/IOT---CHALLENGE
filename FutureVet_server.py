@@ -1,23 +1,23 @@
-﻿"""
-FutureVet â€” Servidor HTTP + Bridge MQTT
+"""
+FutureVet – Servidor HTTP + Bridge MQTT
 =======================================
-FIAP Â· Disruptive Architectures: IoT, IoB & Generative IA Â· 1Âº Sprint 2025
+FIAP · Disruptive Architectures: IoT, IoB & Generative IA · 1º Sprint 2025
 
 COMO FUNCIONA:
-  1. Assina o tÃ³pico MQTT 'FutureVet/sensors/#' no broker HiveMQ
-     â†’ recebe dados REAIS do Wokwi (ESP32-S3) em tempo real
-  2. Se o Wokwi nÃ£o estiver rodando, usa simulador local como fallback
-  3. ExpÃµe tudo via HTTP REST para o dashboard consumir via fetch()
+  1. Assina o tópico MQTT 'FutureVet/sensors/#' no broker HiveMQ
+     → recebe dados REAIS do Wokwi (ESP32-S3) em tempo real
+  2. Se o Wokwi não estiver rodando, usa simulador local como fallback
+  3. Expõe tudo via HTTP REST para o dashboard consumir via fetch()
 
 RODAR:
     pip install paho-mqtt
     python FutureVet_server.py
 
 ENDPOINTS:
-    GET /api/latest/{pet_id}    â†’ leitura mais recente
-    GET /api/history/{pet_id}   â†’ histÃ³rico da sessÃ£o
-    GET /api/readings            â†’ todas as leituras recentes
-    GET /api/status              â†’ diagnÃ³stico da conexÃ£o
+    GET /api/latest/{pet_id}    → leitura mais recente
+    GET /api/history/{pet_id}   → histórico da sessão
+    GET /api/readings            → todas as leituras recentes
+    GET /api/status              → diagnóstico da conexão
 """
 
 import json
@@ -37,7 +37,7 @@ MQTT_CLIENT_ID = "FutureVet-server-bridge"
 PET_PROFILES = {
     "rex":     {"name": "Rex",     "species": "dog",    "breed": "Labrador", "age": 4,
                 "baseline_temp": 38.5, "baseline_hr": 90,  "weight_kg": 28.3},
-    "luna":    {"name": "Luna",    "species": "cat",    "breed": "SiamÃªs",   "age": 2,
+    "luna":    {"name": "Luna",    "species": "cat",    "breed": "Siamês",   "age": 2,
                 "baseline_temp": 38.3, "baseline_hr": 150, "weight_kg": 4.1},
     "bolinha": {"name": "Bolinha", "species": "rabbit", "breed": "Rex",      "age": 1,
                 "baseline_temp": 38.8, "baseline_hr": 200, "weight_kg": 2.3},
@@ -51,32 +51,32 @@ TICK            = 0
 def start_mqtt_bridge():
     """
     Conecta ao HiveMQ e assina FutureVet/sensors/#.
-    Quando o Wokwi publica, os dados chegam aqui e vÃ£o pro buffer.
+    Quando o Wokwi publica, os dados chegam aqui e vão pro buffer.
     Roda em thread separada; falha silenciosamente (fallback assume).
     """
     try:
         import paho.mqtt.client as mqtt
     except ImportError:
-        print("[MQTT] paho-mqtt nÃ£o instalado. Execute: pip install paho-mqtt")
+        print("[MQTT] paho-mqtt não instalado. Execute: pip install paho-mqtt")
         print("[MQTT] Usando apenas simulador local como fonte de dados.")
         return
 
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
             SOURCE_STATUS["mqtt"] = True
-            print(f"[MQTT] âœ“ Conectado ao {MQTT_BROKER}:{MQTT_PORT}")
-            print(f"[MQTT] Assinando '{MQTT_TOPIC_SUB}' â€” aguardando dados do Wokwi...")
+            print(f"[MQTT] ✓ Conectado ao {MQTT_BROKER}:{MQTT_PORT}")
+            print(f"[MQTT] Assinando '{MQTT_TOPIC_SUB}' – aguardando dados do Wokwi...")
             client.subscribe(MQTT_TOPIC_SUB, qos=1)
         else:
-            print(f"[MQTT] âœ— Falha ao conectar (rc={rc}) â€” usando fallback local")
+            print(f"[MQTT] ✗ Falha ao conectar (rc={rc}) – usando fallback local")
 
     def on_disconnect(client, userdata, rc):
         SOURCE_STATUS["mqtt"] = False
         if rc != 0:
-            print(f"[MQTT] Desconectado inesperadamente (rc={rc}) â€” reconectando...")
+            print(f"[MQTT] Desconectado inesperadamente (rc={rc}) – reconectando...")
 
     def on_message(client, userdata, msg):
-        """Chegou mensagem do Wokwi â€” processa e armazena no buffer."""
+        """Chegou mensagem do Wokwi – processa e armazena no buffer."""
         try:
             payload = json.loads(msg.payload.decode())
 
@@ -84,7 +84,7 @@ def start_mqtt_bridge():
             pet_id = parts[-1].lower() if len(parts) >= 3 else payload.get("pet_id", "rex")
 
             if pet_id not in PET_PROFILES:
-                return 
+                return
 
             if "timestamp" not in payload:
                 payload["timestamp"] = datetime.now(timezone.utc).isoformat()
@@ -95,8 +95,8 @@ def start_mqtt_bridge():
             ts = datetime.now().strftime("%H:%M:%S")
             sensors = payload.get("sensors", {})
             print(
-                f"[{ts}] WOKWIâ†’ {pet_id} | "
-                f"T:{sensors.get('temperature_celsius','?')}Â°C | "
+                f"[{ts}] WOKWI→ {pet_id} | "
+                f"T:{sensors.get('temperature_celsius','?')}°C | "
                 f"HR:{sensors.get('heart_rate_bpm','?')} bpm | "
                 f"Score:{payload.get('health_score','?')}"
             )
@@ -124,7 +124,7 @@ def start_mqtt_bridge():
         client.loop_forever()
     except Exception as e:
         SOURCE_STATUS["mqtt"] = False
-        print(f"[MQTT] NÃ£o foi possÃ­vel conectar: {e}")
+        print(f"[MQTT] Não foi possível conectar: {e}")
         print("[MQTT] Usando simulador local como fonte de dados.")
 
 def simulate_reading(pet_id: str, tick: int) -> dict:
@@ -173,8 +173,8 @@ def simulate_reading(pet_id: str, tick: int) -> dict:
 
 def fallback_loop(interval: float = 3.0):
     """
-    Gera leituras locais SOMENTE para pets que nÃ£o receberam
-    dados do Wokwi nos Ãºltimos 10 segundos.
+    Gera leituras locais SOMENTE para pets que não receberam
+    dados do Wokwi nos últimos 10 segundos.
     """
     global TICK
     print("[Fallback] Simulador local iniciado (complementa Wokwi quando offline)")
@@ -218,7 +218,7 @@ class FutureVetHandler(BaseHTTPRequestHandler):
         if len(parts) == 3 and parts[:2] == ["api", "latest"]:
             pet_id = parts[2].lower()
             if pet_id not in READINGS_BUFFER:
-                return self._json({"error": f"Pet '{pet_id}' nÃ£o encontrado"}, 404)
+                return self._json({"error": f"Pet '{pet_id}' não encontrado"}, 404)
             with BUFFER_LOCK:
                 buf = READINGS_BUFFER[pet_id]
                 self._json(buf[-1] if buf else {})
@@ -227,7 +227,7 @@ class FutureVetHandler(BaseHTTPRequestHandler):
         if len(parts) == 3 and parts[:2] == ["api", "history"]:
             pet_id = parts[2].lower()
             if pet_id not in READINGS_BUFFER:
-                return self._json({"error": f"Pet '{pet_id}' nÃ£o encontrado"}, 404)
+                return self._json({"error": f"Pet '{pet_id}' não encontrado"}, 404)
             with BUFFER_LOCK:
                 history = [
                     {"timestamp": r["timestamp"],
@@ -239,7 +239,7 @@ class FutureVetHandler(BaseHTTPRequestHandler):
                 ]
             self._json(history)
             return
-        
+
         if parts == ["api", "readings"]:
             with BUFFER_LOCK:
                 result = {pet: buf[-20:] for pet, buf in READINGS_BUFFER.items()}
@@ -272,16 +272,16 @@ class FutureVetHandler(BaseHTTPRequestHandler):
                 "mqtt_topic":  MQTT_TOPIC_SUB,
                 "tick": TICK,
                 "pets": sources,
-                "tip": "Se mqtt_connected=false, o Wokwi nÃ£o estÃ¡ rodando ou paho-mqtt nÃ£o estÃ¡ instalado."
+                "tip": "Se mqtt_connected=false, o Wokwi não está rodando ou paho-mqtt não está instalado."
             })
             return
 
-        self._json({"error": "Rota nÃ£o encontrada", "path": self.path}, 404)
+        self._json({"error": "Rota não encontrada", "path": self.path}, 404)
 
 def main():
     HOST, PORT = "localhost", 8080
 
-    print("[FutureVet] Gerando histÃ³rico inicial (48 leituras por pet)...")
+    print("[FutureVet] Gerando histórico inicial (48 leituras por pet)...")
     for tick_init in range(48):
         for pet_id in PET_PROFILES:
             READINGS_BUFFER[pet_id].append(simulate_reading(pet_id, tick_init))
@@ -293,16 +293,16 @@ def main():
     t_fallback.start()
 
     print("=" * 58)
-    print("  FutureVet â€” Servidor HTTP + Bridge MQTT")
+    print("  FutureVet – Servidor HTTP + Bridge MQTT")
     print(f"  API:    http://{HOST}:{PORT}/api/status")
-    print(f"  MQTT:   {MQTT_BROKER} â†’ tÃ³pico: {MQTT_TOPIC_SUB}")
+    print(f"  MQTT:   {MQTT_BROKER} → tópico: {MQTT_TOPIC_SUB}")
     print("  Ctrl+C  para encerrar")
     print("=" * 58)
     print()
-    print("  Para verificar se o Wokwi estÃ¡ enviando dados:")
-    print(f"  â†’ Abra http://{HOST}:{PORT}/api/status no navegador")
-    print('  â†’ Procure: "mqtt_connected": true')
-    print('  â†’          "source": "wokwi_mqtt"')
+    print("  Para verificar se o Wokwi está enviando dados:")
+    print(f"  → Abra http://{HOST}:{PORT}/api/status no navegador")
+    print('  → Procure: "mqtt_connected": true')
+    print('  →          "source": "wokwi_mqtt"')
     print()
 
     server = HTTPServer((HOST, PORT), FutureVetHandler)
@@ -314,4 +314,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

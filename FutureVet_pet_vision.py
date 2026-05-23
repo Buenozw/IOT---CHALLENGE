@@ -1,26 +1,26 @@
-﻿"""
-FutureVet â€” VisÃ£o Computacional: DetecÃ§Ã£o e ClassificaÃ§Ã£o de Pets
+"""
+FutureVet – Visão Computacional: Detecção e Classificação de Pets
 ================================================================
 Caso de uso no FutureVet:
-  â€¢ Identifica se um pet estÃ¡ presente na cÃ¢mera da clÃ­nica/residÃªncia
-  â€¢ Classifica espÃ©cie (cÃ£o / gato) e comportamento (em repouso, ativo, comendo)
-  â€¢ Registra eventos no prontuÃ¡rio via HTTP (integrado ao backend FutureVet)
-  â€¢ Gera output visual com bounding boxes, labels e score de saÃºde
+  • Identifica se um pet está presente na câmera da clínica/residência
+  • Classifica espécie (cão / gato) e comportamento (em repouso, ativo, comendo)
+  • Registra eventos no prontuário via HTTP (integrado ao backend FutureVet)
+  • Gera output visual com bounding boxes, labels e score de saúde
 
 Frameworks usados:
-  â€¢ OpenCV  â€” captura, prÃ©-processamento, output visual
-  â€¢ YOLOv8  â€” detecÃ§Ã£o de objetos (ultralytics) â€” usa modelo COCO
-  â€¢ NumPy   â€” manipulaÃ§Ã£o de arrays
+  • OpenCV  – captura, pré-processamento, output visual
+  • YOLOv8  – detecção de objetos (ultralytics) – usa modelo COCO
+  • NumPy   – manipulação de arrays
 
 Como rodar:
-    # Com cÃ¢mera ao vivo:
+    # Com câmera ao vivo:
     python pet_vision.py --source 0
 
-    # Com vÃ­deo ou imagem:
+    # Com vídeo ou imagem:
     python pet_vision.py --source video.mp4
     python pet_vision.py --source foto_pet.jpg
 
-    # Demo sem cÃ¢mera (gera frame sintÃ©tico):
+    # Demo sem câmera (gera frame sintético):
     python pet_vision.py --demo
 """
 
@@ -36,7 +36,7 @@ import numpy as np
 
 PET_CLASSES = {
     15: ("cat",  "Gato",  (255, 140,   0)),
-    16: ("dog",  "CÃ£o",   ( 50, 205,  50)),  
+    16: ("dog",  "Cão",   ( 50, 205,  50)),
     17: ("horse", "Cavalo", (138,  43, 226)),
 }
 
@@ -96,7 +96,7 @@ def draw_detections(frame, detections, frame_count):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, beh_color, 1, cv2.LINE_AA)
 
         score = int(80 + conf * 20)
-        score_text = f"Score SaÃºde: {score}"
+        score_text = f"Score Saude: {score}"
         cv2.putText(frame, score_text, (x1 + 4, y2 + 36),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.45, (200, 230, 255), 1, cv2.LINE_AA)
     return frame
@@ -106,10 +106,10 @@ def load_detector():
     try:
         from ultralytics import YOLO
         model = YOLO("yolov8n.pt")
-        print("âœ…  YOLOv8n carregado com sucesso.")
+        print("✅  YOLOv8n carregado com sucesso.")
         return "yolo", model
     except ImportError:
-        print("âš ï¸   ultralytics nÃ£o instalado. Usando detector placeholder (OpenCV blob).")
+        print("⚠️   ultralytics não instalado. Usando detector placeholder (OpenCV blob).")
         return "placeholder", None
 
 def detect_yolo(frame, model):
@@ -166,7 +166,7 @@ def generate_demo_frame():
     pts_ear_l = np.array([[275, 200], [255, 155], [295, 190]], np.int32)
     pts_ear_r = np.array([[365, 200], [385, 155], [345, 190]], np.int32)
 
-    cv2.fillPoly(frame, [pts_ear_l, pts_ear_r], (80, 100, 140))    
+    cv2.fillPoly(frame, [pts_ear_l, pts_ear_r], (80, 100, 140))
     cv2.circle(frame, (300, 215), 8, (220, 220, 220), -1)
     cv2.circle(frame, (340, 215), 8, (220, 220, 220), -1)
     cv2.circle(frame, (300, 215), 4, (30, 30, 30), -1)
@@ -179,7 +179,7 @@ def generate_demo_frame():
     detections = [{
         "box": (230, 160, 410, 385),
         "label": "dog",
-        "label_pt": "CÃ£o",
+        "label_pt": "Cão",
         "color": (50, 205, 50),
         "confidence": 0.92,
         "behavior": infer_behavior(230, 160, 410, 385, 480),
@@ -208,34 +208,34 @@ def main():
     parser = argparse.ArgumentParser(description="FutureVet Computer Vision")
     parser.add_argument("--source", default="0", help="Video source: 0=webcam, path to file")
     parser.add_argument("--demo",   action="store_true", help="Run demo mode (no camera needed)")
-    parser.add_argument("--output", default="/home/claude/FutureVet/vision_output.jpg",
+    parser.add_argument("--output", default="vision_output.jpg",
                         help="Path to save output frame")
     args = parser.parse_args()
 
     backend, model = load_detector()
 
     if args.demo:
-        print("\nðŸ¾  FutureVet Vision â€” MODO DEMO")
-        print("   Gerando frame sintÃ©tico com detecÃ§Ã£o simulada...\n")
+        print("\n🐾  FutureVet Vision – MODO DEMO")
+        print("   Gerando frame sintético com detecção simulada...\n")
         frame, detections = generate_demo_frame()
         log_event(detections, 1)
         annotated = draw_detections(frame.copy(), detections, 1)
         cv2.imwrite(args.output, annotated)
-        print(f"âœ…  Frame anotado salvo â†’ {args.output}")
+        print(f"✅  Frame anotado salvo → {args.output}")
 
-        log_path = "/home/claude/FutureVet/vision_events.json"
+        log_path = "vision_events.json"
         with open(log_path, "w") as f:
             json.dump(EVENT_LOG, f, indent=2, ensure_ascii=False)
-        print(f"ðŸ“„  Event log salvo â†’ {log_path}")
+        print(f"📄  Event log salvo → {log_path}")
         return
 
     source = int(args.source) if args.source.isdigit() else args.source
     cap = cv2.VideoCapture(source)
     if not cap.isOpened():
-        print(f"âŒ  NÃ£o foi possÃ­vel abrir fonte: {source}")
+        print(f"❌  Não foi possível abrir fonte: {source}")
         sys.exit(1)
 
-    print(f"\nðŸ¾  FutureVet Vision â€” Fonte: {source}")
+    print(f"\n🐾  FutureVet Vision – Fonte: {source}")
     print("   Pressione Q para sair.\n")
 
     frame_count = 0
@@ -263,12 +263,11 @@ def main():
     cap.release()
     cv2.destroyAllWindows()
 
-    log_path = "/home/claude/FutureVet/vision_events.json"
+    log_path = "vision_events.json"
     with open(log_path, "w") as f:
         json.dump(EVENT_LOG, f, indent=2, ensure_ascii=False)
-    print(f"\nðŸ“„  Event log salvo â†’ {log_path}")
+    print(f"\n📄  Event log salvo → {log_path}")
 
 
 if __name__ == "__main__":
     main()
-
