@@ -52,12 +52,12 @@ def infer_behavior(x1, y1, x2, y2, frame_h, prev_box=None):
         movement = ((cx1 - px1) ** 2 + (cy1 - py1) ** 2) ** 0.5
 
     if movement > 30:
-        return "ðŸƒ Ativo", (0, 200, 100)
+        return "Ativo", (0, 200, 100)
     if aspect > 1.8:
-        return "ðŸ’¤ Deitado", (100, 100, 255)
+        return "Deitado", (100, 100, 255)
     if y2 > frame_h * 0.85:
-        return "ðŸ– Comendo/Bebendo", (0, 220, 220)
-    return "ðŸ¾ Parado", (200, 200, 200)
+        return "Comendo/Bebendo", (0, 220, 220)
+    return "Parado", (200, 200, 200)
 
 def draw_detections(frame, detections, frame_count):
     """Draw bounding boxes, labels, and FutureVet HUD onto frame."""
