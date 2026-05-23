@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FutureVet — IoT Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --bg:        #0d0d14;
+    --surface:   #13131e;
+    --surface2:  #1a1a28;
+    --surface3:  #21213200;
+    --border:    rgba(255,255,255,0.06);
+    --accent:    #4f6ef7;
+    --accent-bg: rgba(79,110,247,0.12);
+    --green:     #4ade80;
+    --green-bg:  rgba(74,222,128,0.12);
+    --red:       #f87171;
+    --red-bg:    rgba(248,113,113,0.12);
+    --yellow:    #fbbf24;
+    --yellow-bg: rgba(251,191,36,0.12);
+    --text:      #f1f5f9;
+    --muted:     #64748b;
+    --secondary: #94a3b8;
+    --sidebar-w: 66px;
+    --r:         16px;
+    --r-sm:      10px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    overflow-x: hidden;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    min-height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0 16px;
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    z-index: 100;
+  }
+
+  .sidebar-brand {
+    width: 38px; height: 38px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; color: #fff;
+    margin-bottom: 28px; flex-shrink: 0;
+  }
+
+  .sidebar-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+
+  .nav-btn {
+    width: 42px; height: 42px;
+    border: none; background: transparent;
+    color: var(--muted);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; transition: all .2s;
+  }
+  .nav-btn:hover { background: var(--surface2); color: var(--text); }
+  .nav-btn.active { background: var(--accent-bg); color: var(--accent); }
+  .nav-btn.logout { margin-top: auto; }
+
+  /* ── Main wrapper ── */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    padding: 24px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 100vh;
+  }
+
+  /* ── Topbar ── */
+  .topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .topbar-title { font-size: 24px; font-weight: 700; }
+  .topbar-title span { color: var(--accent); }
+  .topbar-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  .topbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  .pet-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+
+  .pet-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 13px; border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 12px; font-weight: 500;
+    cursor: pointer; transition: all .2s;
+    color: var(--secondary);
+  }
+  .pet-chip.active {
+    background: var(--accent-bg);
+    border-color: rgba(79,110,247,.3);
+    color: var(--accent);
+  }
+  .pet-chip i { font-size: 11px; }
+
+  .divider-v { width: 1px; height: 26px; background: var(--border); }
+
+  .conn-pill {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 11px; border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 11px; font-weight: 500; color: var(--secondary);
+  }
+  .pdot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .pdot.offline { background: var(--red); animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+
+  .api-badge {
+    font-size: 11px; font-weight: 600;
+    padding: 4px 10px; border-radius: 7px;
+  }
+  .api-badge.ok { background: var(--green-bg); color: var(--green); }
+  .api-badge.err { background: var(--red-bg); color: var(--red); }
+
+  .icon-btn {
+    width: 34px; height: 34px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-sm); color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 13px; transition: all .2s;
+  }
+  .icon-btn:hover { color: var(--text); }
+
+  .clock-badge {
+    font-size: 12px; font-weight: 500; color: var(--secondary);
+    padding: 6px 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-sm); min-width: 72px; text-align: center;
+  }
+
+  /* ── Card base ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 20px;
+  }
+
+  .card-hd {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .card-lbl {
+    font-size: 11px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .expand-btn {
+    width: 28px; height: 28px;
+    background: var(--surface2); border: none;
+    border-radius: 8px; color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 11px; transition: all .2s;
+  }
+  .expand-btn:hover { color: var(--text); }
+
+  /* ── Stats grid ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr) 2fr;
+    gap: 16px;
+  }
+
+  .stat-top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .stat-icon {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+  .si-red    { background: var(--red-bg);    color: var(--red);    }
+  .si-green  { background: var(--green-bg);  color: var(--green);  }
+  .si-yellow { background: var(--yellow-bg); color: var(--yellow); }
+  .si-blue   { background: var(--accent-bg); color: var(--accent); }
+
+  .stat-val {
+    font-size: 32px; font-weight: 700; line-height: 1;
+    margin-bottom: 10px; display: flex; align-items: baseline; gap: 4px;
+  }
+  .stat-unit { font-size: 14px; font-weight: 400; color: var(--muted); }
+
+  .stat-footer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  .stat-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 9px; border-radius: 7px;
+    font-size: 11px; font-weight: 600;
+  }
+  .stat-badge.ok   { background: var(--green-bg);  color: var(--green);  }
+  .stat-badge.warn { background: var(--yellow-bg); color: var(--yellow); }
+  .stat-badge.alrt { background: var(--red-bg);    color: var(--red);    }
+
+  .stat-sub { font-size: 11px; color: var(--muted); margin-top: 5px; }
+
+  /* Battery */
+  .batt-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .batt-track { flex: 1; height: 4px; border-radius: 2px; background: var(--surface2); }
+  .batt-fill  { height: 100%; border-radius: 2px; background: var(--green); transition: width .5s; }
+  .batt-pct   { font-size: 11px; color: var(--muted); font-weight: 500; min-width: 30px; }
+
+  /* ── Chart card ── */
+  .chart-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  svg.linechart { width: 100%; overflow: visible; }
+  .cl { font-family: 'Inter', sans-serif; font-size: 9px; fill: var(--muted); }
+  .chart-xrow { display: flex; justify-content: space-between; margin-top: 6px; }
+  .chart-xl   { font-size: 10px; color: var(--muted); }
+
+  /* ── Middle grid ── */
+  .mid-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* Alerts */
+  .alert-list { display: flex; flex-direction: column; gap: 7px; }
+  .alert-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+  }
+  .adot { width: 8px; height: 8px; border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
+  .alert-title { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+  .alert-sub   { font-size: 10px; color: var(--muted); }
+
+  /* Heatmap */
+  .hm-lbl-row { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 4px; }
+  .hml { font-size: 9px; color: var(--muted); text-align: center; }
+  .hm-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+  .hmc { aspect-ratio: 1; border-radius: 3px; }
+  .l0 { background: var(--surface2); }
+  .l1 { background: rgba(79,110,247,.2); }
+  .l2 { background: rgba(79,110,247,.45); }
+  .l3 { background: rgba(79,110,247,.7); }
+  .l4 { background: var(--accent); }
+  .hm-legend { display: flex; align-items: center; gap: 5px; margin-top: 10px; }
+  .hm-legend span { font-size: 10px; color: var(--muted); }
+
+  /* Health score */
+  .score-wrap {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px; min-height: 160px;
+  }
+  .donut-container { position: relative; }
+  .donut-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .score-n { font-size: 30px; font-weight: 800; color: var(--accent); }
+  .score-s { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .score-status { font-size: 11px; color: var(--muted); text-align: center; }
+
+  /* ── Log table ── */
+  .log-hd-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+  }
+  .log-hd-left  { display: flex; align-items: center; gap: 12px; }
+  .log-hd-right { display: flex; align-items: center; gap: 10px; }
+  .log-tabs { display: flex; gap: 6px; }
+  .log-tab {
+    padding: 5px 13px; border-radius: 8px;
+    font-size: 12px; font-weight: 500;
+    border: none; cursor: pointer; transition: all .2s;
+    background: transparent; color: var(--muted);
+  }
+  .log-tab.active { background: var(--accent-bg); color: var(--accent); }
+
+  .log-tbl { width: 100%; border-collapse: collapse; }
+  .log-tbl th {
+    font-size: 10px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.7px;
+    padding: 8px 12px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .log-tbl td {
+    padding: 10px 12px; font-size: 12px;
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+  }
+  .log-tbl tr:last-child td { border-bottom: none; }
+  .log-tbl tbody tr:hover td { background: var(--surface2); }
+  .cell-ts    { color: var(--accent); font-weight: 600; white-space: nowrap; }
+  .cell-proto { color: var(--secondary); font-weight: 500; }
+  .cell-topic { color: var(--muted); font-size: 11px; }
+  .cell-data  { color: var(--text); font-size: 11px; font-family: 'Courier New', monospace; }
+
+  .src-badge {
+    font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 6px;
+  }
+  .src-real { background: var(--green-bg);  color: var(--green);  }
+  .src-mock { background: var(--yellow-bg); color: var(--yellow); }
+
+  .topic-display {
+    font-size: 11px; color: var(--muted);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .topic-display strong { color: var(--accent); font-weight: 500; }
+
+  /* ── Footer ── */
+  .footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 10px; border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--muted); flex-wrap: wrap; gap: 8px;
+  }
+  .footer-info { display: flex; gap: 20px; flex-wrap: wrap; }
+  .footer-info strong { color: var(--secondary); }
+
+  /* ── Responsive ── */
+  @media(max-width:1280px){
+    .stats-grid { grid-template-columns: repeat(2,1fr); }
+  }
+  @media(max-width:900px){
+    .mid-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════ SIDEBAR ════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <i class="fa-solid fa-paw"></i>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="nav-btn active" title="Dashboard">
+      <i class="fa-solid fa-house"></i>
+    </button>
+    <button class="nav-btn" title="Prontuários">
+      <i class="fa-solid fa-clipboard-list"></i>
+    </button>
+    <button class="nav-btn" title="Pacientes">
+      <i class="fa-solid fa-paw"></i>
+    </button>
+    <button class="nav-btn" title="Análises">
+      <i class="fa-solid fa-chart-line"></i>
+    </button>
+    <button class="nav-btn" title="Configurações">
+      <i class="fa-solid fa-gear"></i>
+    </button>
+    <button class="nav-btn" title="Log">
+      <i class="fa-solid fa-terminal"></i>
+    </button>
+  </nav>
+  <button class="nav-btn logout" title="Sair">
+    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+  </button>
+</aside>
+
+<!-- ════════════ MAIN ════════════ -->
+<div class="main">
+
+  <!-- ── Topbar ── -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">FutureVet <span>IoT</span> Dashboard</div>
+      <div class="topbar-sub">Monitoramento em tempo real dos pacientes.</div>
+    </div>
+    <div class="topbar-right">
+      <span class="pet-label">Paciente:</span>
+      <div class="pet-chip active" data-pet="rex" onclick="selectPet('rex')">
+        <i class="fa-solid fa-dog"></i> Rex · Labrador · 4a
+      </div>
+      <div class="pet-chip" data-pet="luna" onclick="selectPet('luna')">
+        <i class="fa-solid fa-cat"></i> Luna · Siamês · 2a
+      </div>
+      <div class="pet-chip" data-pet="bolinha" onclick="selectPet('bolinha')">
+        <i class="fa-solid fa-paw"></i> Bolinha · Rex · 1a
+      </div>
+      <div class="divider-v"></div>
+      <div class="conn-pill">
+        <div class="pdot" id="conn-dot"></div>
+        <span id="conn-label">Conectando…</span>
+      </div>
+      <div class="api-badge err" id="api-badge">API: offline</div>
+      <div class="divider-v"></div>
+      <div class="icon-btn"><i class="fa-solid fa-gear"></i></div>
+      <div class="icon-btn"><i class="fa-solid fa-bell"></i></div>
+      <div class="clock-badge" id="clock">--:--:--</div>
+    </div>
+  </div>
+
+  <!-- ── Stats Grid ── -->
+  <div class="stats-grid">
+
+    <!-- Temperatura -->
+    <div class="card">
+      <div class="stat-top">
+        <div class="card-lbl"><i class="fa-solid fa-temperature-half"></i> Temperatura</div>
+        <div class="stat-icon si-red"><i class="fa-solid fa-temperature-high"></i></div>
+      </div>
+      <div class="stat-val" id="temp">--<span class="stat-unit">°C</span></div>
+      <div class="stat-footer">
+        <div class="stat-badge ok" id="temp-st">— aguardando</div>
+      </div>
+      <div class="stat-sub">Temperatura corporal do pet</div>
+    </div>
+
+    <!-- Freq. Cardíaca -->
+    <div class="card">
+      <div class="stat-top">
+        <div class="card-lbl"><i class="fa-solid fa-heart-pulse"></i> Freq. Cardíaca</div>
+        <div class="stat-icon si-green"><i class="fa-solid fa-heart-pulse"></i></div>
+      </div>
+      <div class="stat-val" id="bpm">--<span class="stat-unit">bpm</span></div>
+      <div class="stat-footer">
+        <div class="stat-badge ok" id="bpm-st">— aguardando</div>
+      </div>
+      <div class="stat-sub">MAX30102 · ESP32-S3</div>
+    </div>
+
+    <!-- Atividade -->
+    <div class="card">
+      <div class="stat-top">
+        <div class="card-lbl"><i class="fa-solid fa-person-running"></i> Atividade</div>
+        <div class="stat-icon si-yellow"><i class="fa-solid fa-person-running"></i></div>
+      </div>
+      <div class="stat-val" id="steps">--<span class="stat-unit">/min</span></div>
+      <div class="stat-footer">
+        <div class="stat-badge ok" id="steps-st">— aguardando</div>
+      </div>
+      <div class="stat-sub">Passos por minuto · ADXL345</div>
+    </div>
+
+    <!-- Peso + Bateria -->
+    <div class="card">
+      <div class="stat-top">
+        <div class="card-lbl"><i class="fa-solid fa-weight-scale"></i> Peso · Bateria</div>
+        <div class="stat-icon si-blue"><i class="fa-solid fa-weight-scale"></i></div>
+      </div>
+      <div class="stat-val" id="weight">--<span class="stat-unit">kg</span></div>
+      <div class="stat-footer">
+        <div class="stat-badge ok" id="weight-st">— aguardando</div>
+      </div>
+      <div class="batt-row">
+        <i class="fa-solid fa-battery-half" style="color:var(--muted);font-size:11px"></i>
+        <div class="batt-track">
+          <div class="batt-fill" id="bat-fill" style="width:0%"></div>
+        </div>
+        <span class="batt-pct" id="bat-pct">--%</span>
+      </div>
+    </div>
+
+    <!-- Gráfico Freq. Cardíaca -->
+    <div class="card">
+      <div class="card-hd" style="margin-bottom:10px">
+        <div>
+          <div class="card-lbl"><i class="fa-solid fa-chart-line"></i> Freq. Cardíaca — Histórico</div>
+          <div class="chart-meta" id="data-source-tag">aguardando dados…</div>
+        </div>
+        <button class="expand-btn"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>
+      </div>
+      <svg id="hchart" class="linechart" viewBox="0 0 520 110" height="110">
+        <line x1="0" y1="22" x2="520" y2="22" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+        <line x1="0" y1="55" x2="520" y2="55" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+        <line x1="0" y1="88" x2="520" y2="88" stroke="rgba(255,255,255,.04)" stroke-width="1"/>
+        <text x="2" y="20" class="cl">120</text>
+        <text x="2" y="53" class="cl">90</text>
+        <text x="2" y="86" class="cl">60</text>
+        <path id="hfill" fill="rgba(79,110,247,.08)"/>
+        <path id="hline" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
+        <circle id="hdot" r="4" fill="var(--accent)" filter="drop-shadow(0 0 5px rgba(79,110,247,.8))"/>
+      </svg>
+      <div class="chart-xrow">
+        <span class="chart-xl" id="chart-t0">--</span>
+        <span class="chart-xl">← leituras da sessão →</span>
+        <span class="chart-xl">Agora</span>
+      </div>
+    </div>
+
+  </div><!-- /stats-grid -->
+
+  <!-- ── Middle Row ── -->
+  <div class="mid-grid">
+
+    <!-- Alertas -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-lbl">
+          <i class="fa-solid fa-triangle-exclamation"></i> Alertas do Sensor
+        </div>
+        <button class="expand-btn"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>
+      </div>
+      <div class="alert-list" id="alert-list">
+        <div class="alert-item">
+          <div class="adot" style="background:var(--muted)"></div>
+          <div>
+            <div class="alert-title" style="color:var(--muted)">Aguardando servidor…</div>
+            <div class="alert-sub">Execute: python FutureVet_server.py</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Atividade Semanal -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-lbl">
+          <i class="fa-solid fa-calendar-week"></i> Atividade Semanal
+        </div>
+        <span class="src-badge src-real">ADXL345</span>
+      </div>
+      <div class="hm-lbl-row">
+        <div class="hml">Dom</div><div class="hml">Seg</div><div class="hml">Ter</div>
+        <div class="hml">Qua</div><div class="hml">Qui</div><div class="hml">Sex</div>
+        <div class="hml">Sáb</div>
+      </div>
+      <div class="hm-grid" id="heatmap"></div>
+      <div class="hm-legend">
+        <span>Menos</span>
+        <div style="width:10px;height:10px;border-radius:2px" class="l0"></div>
+        <div style="width:10px;height:10px;border-radius:2px" class="l1"></div>
+        <div style="width:10px;height:10px;border-radius:2px" class="l2"></div>
+        <div style="width:10px;height:10px;border-radius:2px" class="l3"></div>
+        <div style="width:10px;height:10px;border-radius:2px" class="l4"></div>
+        <span>Mais</span>
+      </div>
+    </div>
+
+    <!-- Score de Saúde -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-lbl">
+          <i class="fa-solid fa-shield-heart"></i> Score de Saúde
+        </div>
+        <button class="expand-btn"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>
+      </div>
+      <div class="score-wrap">
+        <div class="donut-container">
+          <svg width="130" height="130" viewBox="0 0 130 130">
+            <circle cx="65" cy="65" r="52" fill="none" stroke="var(--surface2)" stroke-width="12"/>
+            <circle id="darc" cx="65" cy="65" r="52" fill="none" stroke="var(--accent)" stroke-width="12"
+              stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"
+              transform="rotate(-90 65 65)" style="transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)"/>
+          </svg>
+          <div class="donut-center">
+            <div class="score-n" id="scorenum">--</div>
+            <div class="score-s">/ 100</div>
+          </div>
+        </div>
+        <div class="score-status" id="alert-summary">Aguardando dados do servidor…</div>
+      </div>
+    </div>
+
+  </div><!-- /mid-grid -->
+
+  <!-- ── Log ── -->
+  <div class="card">
+    <div class="log-hd-row">
+      <div class="log-hd-left">
+        <div class="card-lbl"><i class="fa-solid fa-terminal"></i> Log MQTT / HTTP</div>
+        <div class="log-tabs">
+          <button class="log-tab active">Todos</button>
+          <button class="log-tab">MQTT</button>
+          <button class="log-tab">HTTP</button>
+        </div>
+      </div>
+      <div class="log-hd-right">
+        <span class="src-badge src-real" id="log-src">API Real</span>
+        <div class="topic-display">
+          Tópico: <strong id="topic-label">FutureVet/rex/sensors · localhost:8080</strong>
+        </div>
+      </div>
+    </div>
+    <table class="log-tbl">
+      <thead>
+        <tr>
+          <th>Horário</th>
+          <th>Protocolo</th>
+          <th>Tópico / Endpoint</th>
+          <th>Dados</th>
+        </tr>
+      </thead>
+      <tbody id="log"></tbody>
+    </table>
+  </div>
+
+  <!-- ── Footer ── -->
+  <div class="footer">
+    <div class="footer-info">
+      <div>Dispositivo: <strong>ESP32-S3 · FutureVet Collar v1.2</strong></div>
+      <div>Broker: <strong>localhost:8080 → HiveMQ</strong></div>
+      <div>QoS: <strong>1</strong></div>
+      <div>Protocolo: <strong>MQTT + HTTP REST</strong></div>
+      <div>Fonte: <strong id="footer-src">—</strong></div>
+    </div>
+    <div>FIAP · Disruptive Architectures · IoT · 1º Sprint 2025</div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+const API_BASE = 'http://localhost:8080';
+const POLL_INTERVAL = 3000;
+let currentPet = 'rex';
+let isApiOnline = false;
+let heartData = [];
+
+const PET_META = {
+  rex:     {label:'Rex · Labrador · 4a',    topic:'FutureVet/rex/sensors'},
+  luna:    {label:'Luna · Siamês · 2a',     topic:'FutureVet/luna/sensors'},
+  bolinha: {label:'Bolinha · Rex · 1a',     topic:'FutureVet/bolinha/sensors'},
+};
+
+const SPECIES_LIMITS = {
+  dog:    {temp:[37.5,39.2], hr:[60,120]},
+  cat:    {temp:[38.0,39.5], hr:[120,220]},
+  rabbit: {temp:[38.5,40.0], hr:[140,300]},
+};
+
+setInterval(()=>{
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+},1000);
+
+function buildHeatmap(readings){
+  const hm = document.getElementById('heatmap');
+  hm.innerHTML = '';
+  const vals = readings.length >= 21
+    ? readings.slice(-21).map(r => Math.min(4, Math.floor(r.activity_score * 5)))
+    : [3,2,4,3,1,4,2,1,3,4,2,3,1,2,4,3,2,4,3,1,4];
+  vals.forEach(l=>{
+    const c = document.createElement('div');
+    c.className = `hmc l${l}`;
+    hm.appendChild(c);
+  });
+}
+
+function drawChart(){
+  if(heartData.length < 2) return;
+  const w=520,h=110,pad=22,min=40,max=200;
+  const xs=(w-pad)/(heartData.length-1);
+  const coords=heartData.map((v,i)=>({
+    x:pad+i*xs,
+    y:h-((v-min)/(max-min))*(h-10)-5
+  }));
+  let d=`M ${coords[0].x},${coords[0].y}`;
+  coords.slice(1).forEach(p=>d+=` L ${p.x},${p.y}`);
+  const last=coords[coords.length-1];
+  document.getElementById('hline').setAttribute('d',d);
+  document.getElementById('hfill').setAttribute('d',d+` L ${last.x},${h} L ${pad},${h} Z`);
+  document.getElementById('hdot').setAttribute('cx',last.x);
+  document.getElementById('hdot').setAttribute('cy',last.y);
+}
+
+function addLog(proto, topic, msg){
+  const ts = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const tbody = document.getElementById('log');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="cell-ts">${ts}</td>
+    <td class="cell-proto">${proto}</td>
+    <td class="cell-topic">${topic}</td>
+    <td class="cell-data">${msg}</td>`;
+  tbody.insertBefore(tr, tbody.firstChild);
+  if(tbody.children.length > 8) tbody.removeChild(tbody.lastChild);
+}
+
+function setApiStatus(online){
+  isApiOnline = online;
+  const dot      = document.getElementById('conn-dot');
+  const label    = document.getElementById('conn-label');
+  const badge    = document.getElementById('api-badge');
+  const src      = document.getElementById('data-source-tag');
+  const logSrc   = document.getElementById('log-src');
+  const footerSrc= document.getElementById('footer-src');
+  if(online){
+    dot.classList.remove('offline');
+    label.textContent = 'Live · API Local';
+    badge.className   = 'api-badge ok';
+    badge.textContent = 'API: localhost:8080 ✓';
+    src.textContent   = 'dados reais do simulador';
+    logSrc.className  = 'src-badge src-real';
+    logSrc.textContent= 'API Real';
+    footerSrc.textContent = 'FutureVet_server.py → dados reais';
+  } else {
+    dot.classList.add('offline');
+    label.textContent = 'Offline · fallback';
+    badge.className   = 'api-badge err';
+    badge.textContent = 'API: offline (fallback JS)';
+    src.textContent   = 'fallback JS (servidor offline)';
+    logSrc.className  = 'src-badge src-mock';
+    logSrc.textContent= 'Fallback';
+    footerSrc.textContent = 'JavaScript local (sem servidor)';
+  }
+}
+
+function applyReading(r, species){
+  const lim = SPECIES_LIMITS[species] || SPECIES_LIMITS.dog;
+
+  const temp = r.sensors.temperature_celsius;
+  document.getElementById('temp').innerHTML = `${temp}<span class="stat-unit">°C</span>`;
+  const tEl = document.getElementById('temp-st');
+  if(temp > lim.temp[1]){
+    tEl.className='stat-badge alrt';
+    tEl.innerHTML='<i class="fa-solid fa-circle-exclamation"></i> Febre detectada!';
+  } else if(temp < lim.temp[0]){
+    tEl.className='stat-badge warn';
+    tEl.innerHTML='<i class="fa-solid fa-triangle-exclamation"></i> Hipotermia leve';
+  } else {
+    tEl.className='stat-badge ok';
+    tEl.innerHTML=`<i class="fa-solid fa-check"></i> Normal (${lim.temp[0]}–${lim.temp[1]}°C)`;
+  }
+
+  const bpm = r.sensors.heart_rate_bpm;
+  document.getElementById('bpm').innerHTML = `${bpm}<span class="stat-unit">bpm</span>`;
+  const bEl = document.getElementById('bpm-st');
+  if(bpm > lim.hr[1]){
+    bEl.className='stat-badge alrt';
+    bEl.innerHTML='<i class="fa-solid fa-circle-exclamation"></i> Acima do normal';
+  } else if(bpm < lim.hr[0]){
+    bEl.className='stat-badge alrt';
+    bEl.innerHTML='<i class="fa-solid fa-circle-exclamation"></i> Abaixo do normal';
+  } else {
+    bEl.className='stat-badge ok';
+    bEl.innerHTML=`<i class="fa-solid fa-check"></i> Normal (${lim.hr[0]}–${lim.hr[1]} bpm)`;
+  }
+
+  const steps = r.sensors.steps_last_minute;
+  document.getElementById('steps').innerHTML = `${steps.toLocaleString('pt-BR')}<span class="stat-unit">/min</span>`;
+  const sEl = document.getElementById('steps-st');
+  if(steps < 5 && r.sensors.activity_score < 0.1){
+    sEl.className='stat-badge warn';
+    sEl.innerHTML='<i class="fa-solid fa-triangle-exclamation"></i> Atividade muito baixa';
+  } else if(steps > 80){
+    sEl.className='stat-badge ok';
+    sEl.innerHTML='<i class="fa-solid fa-check"></i> Bem ativo';
+  } else {
+    sEl.className='stat-badge ok';
+    sEl.innerHTML='<i class="fa-solid fa-check"></i> Atividade normal';
+  }
+
+  document.getElementById('weight').innerHTML = `${r.sensors.weight_kg}<span class="stat-unit">kg</span>`;
+  const bat = r.battery_pct;
+  document.getElementById('bat-fill').style.width = bat + '%';
+  document.getElementById('bat-fill').style.background =
+    bat < 20 ? 'var(--red)' : bat < 50 ? 'var(--yellow)' : 'var(--green)';
+  document.getElementById('bat-pct').textContent = bat + '%';
+  const wEl = document.getElementById('weight-st');
+  wEl.className = 'stat-badge ok';
+  wEl.innerHTML = `<i class="fa-solid fa-check"></i> Bateria ${bat}%`;
+
+  const score = Math.round(r.health_score);
+  document.getElementById('scorenum').textContent = score;
+  const circ = 326.7;
+  document.getElementById('darc').style.strokeDashoffset = circ * (1 - score/100);
+  document.getElementById('darc').style.stroke =
+    score >= 80 ? 'var(--green)' : score >= 60 ? 'var(--yellow)' : 'var(--red)';
+
+  const alertSum = document.getElementById('alert-summary');
+  if(r.alerts && r.alerts.length > 0){
+    alertSum.style.color = 'var(--red)';
+    alertSum.textContent = r.alerts.join(' · ');
+  } else {
+    alertSum.style.color = 'var(--green)';
+    alertSum.textContent = 'Todos os indicadores normais';
+  }
+
+  const topic = PET_META[currentPet]?.topic || 'FutureVet/sensors';
+  const proto = r.protocol || 'MQTT';
+  addLog(proto, topic, JSON.stringify({temp,bpm,steps,bat:`${bat}%`}));
+
+  heartData.push(bpm);
+  if(heartData.length > 48) heartData.shift();
+  drawChart();
+}
+
+function renderAlerts(alerts){
+  const list = document.getElementById('alert-list');
+  if(!alerts || alerts.length === 0){
+    list.innerHTML = `<div class="alert-item">
+      <div class="adot" style="background:var(--green)"></div>
+      <div>
+        <div class="alert-title">Sem alertas ativos</div>
+        <div class="alert-sub">Todos os sensores normais</div>
+      </div>
+    </div>`;
+    return;
+  }
+  const colors = ['var(--red)','var(--yellow)','var(--accent)','var(--green)'];
+  const labels = {
+    HIGH_TEMPERATURE:    ['Temperatura elevada',    'Acima do limite fisiológico'],
+    ELEVATED_HEART_RATE: ['Freq. cardíaca elevada', 'Acima do normal para a espécie'],
+    LOW_ACTIVITY_DAYTIME:['Atividade baixa (dia)',  'Abaixo do esperado no período'],
+  };
+  list.innerHTML = alerts.map((a,i)=>{
+    const [title, sub] = labels[a] || [a, 'Verificar com o veterinário'];
+    return `<div class="alert-item">
+      <div class="adot" style="background:${colors[i%colors.length]}"></div>
+      <div>
+        <div class="alert-title">${title}</div>
+        <div class="alert-sub">${sub}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function fetchLatest(){
+  try {
+    const res = await fetch(`${API_BASE}/api/latest/${currentPet}`, {signal: AbortSignal.timeout(2000)});
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if(!data.sensors) throw new Error('Dados inválidos');
+    setApiStatus(true);
+    applyReading(data, data.species || 'dog');
+    renderAlerts(data.alerts || []);
+    return true;
+  } catch(e){
+    setApiStatus(false);
+    return false;
+  }
+}
+
+async function fetchHistory(){
+  try {
+    const res = await fetch(`${API_BASE}/api/history/${currentPet}`, {signal: AbortSignal.timeout(2000)});
+    if(!res.ok) throw new Error();
+    const history = await res.json();
+    heartData = history.map(r => r.heart_rate_bpm).slice(-48);
+    if(history.length > 0){
+      const t0 = new Date(history[0].timestamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      document.getElementById('chart-t0').textContent = t0;
+    }
+    buildHeatmap(history);
+    drawChart();
+  } catch(e){ /* fallback desenhará */ }
+}
+
+const FALLBACK_PROFILES = {
+  rex:     {species:'dog',    temp:38.5, hr:90,  weight:28.3, steps:60},
+  luna:    {species:'cat',    temp:38.3, hr:150, weight:4.1,  steps:40},
+  bolinha: {species:'rabbit', temp:38.8, hr:200, weight:2.3,  steps:80},
+};
+
+function fallbackTick_fn(){
+  if(isApiOnline) return;
+  const p = FALLBACK_PROFILES[currentPet];
+  const reading = {
+    sensors:{
+      temperature_celsius: +(p.temp + (Math.random()-.5)*.5).toFixed(1),
+      heart_rate_bpm:      Math.round(p.hr + (Math.random()-.5)*20),
+      activity_score:      +(0.3 + Math.random()*.5).toFixed(3),
+      steps_last_minute:   Math.round(p.steps + (Math.random()-.5)*30),
+      weight_kg:           p.weight,
+    },
+    battery_pct: 85,
+    health_score: 75 + Math.random()*20,
+    alerts: [],
+    protocol: 'HTTP',
+  };
+  applyReading(reading, p.species);
+}
+
+function selectPet(pet){
+  currentPet = pet;
+  heartData = [];
+  document.querySelectorAll('.pet-chip').forEach(c=>{
+    c.classList.toggle('active', c.dataset.pet === pet);
+  });
+  const meta = PET_META[pet];
+  document.getElementById('topic-label').textContent = `${meta.topic} · localhost:8080`;
+  fetchHistory().then(()=> fetchLatest());
+}
+
+(async ()=>{
+  await fetchHistory();
+  const ok = await fetchLatest();
+  if(!ok){
+    for(let i=0;i<48;i++){
+      const p = FALLBACK_PROFILES[currentPet];
+      heartData.push(Math.round(p.hr + (Math.random()-.5)*20));
+    }
+    buildHeatmap([]);
+    drawChart();
+    addLog('SISTEMA','dashboard','Servidor offline — modo fallback ativo');
+    addLog('DICA','—','Execute: python FutureVet_server.py');
+  } else {
+    addLog('HTTP','FutureVet/status','{"api":"online","source":"FutureVet_server.py"}');
+    addLog('MQTT','FutureVet/connected','{"device":"ESP32-S3","fw":"1.2.0"}');
+  }
+
+  setInterval(async ()=>{
+    const ok2 = await fetchLatest();
+    if(!ok2) fallbackTick_fn();
+  }, POLL_INTERVAL);
+})();
+</script>
+</body>
+</html>
