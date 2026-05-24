@@ -400,20 +400,3 @@ snapshots_FutureVet/
 | João Victor Caetano Alves da Silva | RM562074 | [@joaocaetano1310](https://github.com/joaocaetano1310) |
 | Ryan Victor da Silva Vetoriano | RM565667 | [@ryanvetoriano](https://github.com/ryanvetoriano) |
 | João Victor Bueno Castelini da Silva | RM564115 | [@Buenozw](https://github.com/Buenozw) |
-
----
-
-## 📊 Critérios de Avaliação FIAP
-
-| Critério | Pontos | Como atendemos |
-|---|---|---|
-| Aplicação técnica de IoT | 50 pts | ESP32-S3 + DS18B20 + MPU-6050 + MQTT + API REST + YOLOv8 |
-| Clareza da apresentação em vídeo | 20 pts | Vídeo pitch com demo funcional no YouTube |
-| Organização do repositório | 20 pts | README completo, código comentado, estrutura clara |
-| Disrupção / Inovação | 10 pts | Rastreamento de comportamento + snapshot vinculado ao prontuário |
-
----
-
-## 📄 Licença
-
-Projeto acadêmico desenvolvido para fins educacionais — FIAP 2025.
