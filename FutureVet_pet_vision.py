@@ -1,29 +1,3 @@
-"""
-FutureVet – Visão Computacional: Detecção e Classificação de Pets
-================================================================
-Caso de uso no FutureVet:
-  • Identifica se um pet está presente na câmera da clínica/residência
-  • Classifica espécie (cão / gato) e comportamento (em repouso, ativo, comendo)
-  • Registra eventos no prontuário via HTTP (integrado ao backend FutureVet)
-  • Gera output visual com bounding boxes, labels e score de saúde
-
-Frameworks usados:
-  • OpenCV  – captura, pré-processamento, output visual
-  • YOLOv8  – detecção de objetos (ultralytics) – usa modelo COCO
-  • NumPy   – manipulação de arrays
-
-Como rodar:
-    # Com câmera ao vivo:
-    python pet_vision.py --source 0
-
-    # Com vídeo ou imagem:
-    python pet_vision.py --source video.mp4
-    python pet_vision.py --source foto_pet.jpg
-
-    # Demo sem câmera (gera frame sintético):
-    python pet_vision.py --demo
-"""
-
 import argparse
 import json
 import sys
@@ -41,7 +15,6 @@ PET_CLASSES = {
 }
 
 def infer_behavior(x1, y1, x2, y2, frame_h, prev_box=None):
-    """Infer rough behavioral state from box size and inter-frame movement."""
     area = (x2 - x1) * (y2 - y1)
     aspect = (x2 - x1) / max(y2 - y1, 1)
 
@@ -60,7 +33,6 @@ def infer_behavior(x1, y1, x2, y2, frame_h, prev_box=None):
     return "Parado", (200, 200, 200)
 
 def draw_detections(frame, detections, frame_count):
-    """Draw bounding boxes, labels, and FutureVet HUD onto frame."""
     h, w = frame.shape[:2]
 
     overlay = frame.copy()
@@ -102,7 +74,6 @@ def draw_detections(frame, detections, frame_count):
     return frame
 
 def load_detector():
-    """Load YOLOv8 if available, otherwise use a simple color-blob fallback."""
     try:
         from ultralytics import YOLO
         model = YOLO("yolov8n.pt")
@@ -132,7 +103,6 @@ def detect_yolo(frame, model):
     return detections
 
 def detect_placeholder(frame):
-    """Blob-based fallback detector (for environments without ultralytics)."""
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     lower = np.array([5, 40, 60])
     upper = np.array([30, 200, 220])
@@ -154,7 +124,6 @@ def detect_placeholder(frame):
     return detections[:3]
 
 def generate_demo_frame():
-    """Create a synthetic frame simulating a pet in frame."""
 
     frame = np.zeros((480, 640, 3), dtype=np.uint8)
     frame[:] = (40, 45, 55)

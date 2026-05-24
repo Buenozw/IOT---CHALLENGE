@@ -1,40 +1,4 @@
-﻿"""
-â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
-â•‘          FutureVet â€” VisÃ£o Computacional Â· DetecÃ§Ã£o & ClassificaÃ§Ã£o           â•‘
-â•‘          FIAP Â· Disruptive Architectures: IoT, IoB & Generative IA          â•‘
-â•‘          1Âº Sprint Â· 2025                                                   â•‘
-â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-
-PROPÃ“SITO NO PROJETO:
-  Identificar automaticamente pets na cÃ¢mera da clÃ­nica/coleira-cam,
-  classificar espÃ©cie/raÃ§a estimada, rastrear o animal entre frames e
-  gerar snapshots para o prontuÃ¡rio vivo do FutureVet.
-
-FRAMEWORKS:
-  - OpenCV  : captura, prÃ©-processamento, output visual  (sempre disponÃ­vel)
-  - YOLOv8  : detecÃ§Ã£o em tempo real                     (opcional, requer internet)
-  - NumPy   : operaÃ§Ãµes de array
-
-INSTALAÃ‡ÃƒO MÃNIMA (sem YOLO):
-  pip install opencv-python numpy
-
-INSTALAÃ‡ÃƒO COMPLETA (com YOLO):
-  pip install opencv-python numpy ultralytics
-
-USO:
-  python FutureVet_visao_computacional.py              # cÃ¢mera automÃ¡tica ou demo
-  python FutureVet_visao_computacional.py --demo       # demo forÃ§ado (sem cÃ¢mera)
-  python FutureVet_visao_computacional.py --source 0   # forÃ§a cÃ¢mera Ã­ndice 0
-  python FutureVet_visao_computacional.py --source video.mp4
-  python FutureVet_visao_computacional.py --source foto.jpg --image
-
-CONTROLES (janela aberta):
-  Q  â†’ sair
-  S  â†’ snapshot manual
-  D  â†’ alternar modo demo/cÃ¢mera
-"""
-
-import cv2
+﻿import cv2
 import numpy as np
 import time
 import json
@@ -45,9 +9,6 @@ from datetime import datetime
 from collections import defaultdict
 from typing import Optional
 
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# CONFIG
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 CFG = {
     "classes_de_interesse": ["dog", "cat"],
     "confianca_minima": 0.45,
@@ -58,7 +19,6 @@ CFG = {
     "snapshot_intervalo_frames": 150,
 }
 
-# Cores BGR
 COR = {
     "dog":     (0, 229, 160),
     "cat":     (91, 156, 246),
@@ -84,10 +44,6 @@ RACAS = {
     },
 }
 
-
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# CENTROID TRACKER
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class PetTracker:
     def __init__(self, max_miss: int = 40):
         self.next_id = 0
@@ -151,12 +107,7 @@ class PetTracker:
         if len(self.history[pid]) > 80:
             self.history[pid].pop(0)
 
-
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# DETECTOR DE CÃ‚MERA
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def encontrar_camera() -> Optional[int]:
-    """Tenta abrir cÃ¢meras de Ã­ndice 0 a 4. Retorna o Ã­ndice ou None."""
     for idx in range(5):
         cap = cv2.VideoCapture(idx)
         if cap.isOpened():
@@ -167,101 +118,91 @@ def encontrar_camera() -> Optional[int]:
                 return idx
     return None
 
-
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# GERADOR DE CENA DEMO
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class DemoScene:
-    """
-    Gera cenas sintÃ©ticas realistas de clÃ­nica veterinÃ¡ria com pets animados.
-    Usado quando cÃ¢mera nÃ£o estÃ¡ disponÃ­vel.
-    """
     def __init__(self, w: int, h: int):
         self.w = w
         self.h = h
         self.t = 0.0
-        # Define 2 pets com movimentos independentes
         self.pets = [
             {"tipo": "dog", "fase_x": 0.0,   "fase_y": 0.3,  "vel": 0.032, "cor_pelo": (80,110,70),  "cx": w*0.35, "cy": h*0.5, "escala": 1.0},
             {"tipo": "cat", "fase_x": 2.1,   "fase_y": 1.4,  "vel": 0.018, "cor_pelo": (55, 80,130), "cx": w*0.72, "cy": h*0.48,"escala": 0.75},
         ]
 
     def _desenhar_fundo(self, frame: np.ndarray):
-        # Gradiente de fundo â€” azul escuro â†’ quase preto
         for y in range(self.h):
             v = int(10 + (y / self.h) * 12)
             frame[y, :] = [v+6, v+9, v+15]
-        # Grade de ambiente
+
         for x in range(0, self.w, 40):
             cv2.line(frame, (x, 0), (x, self.h), (25, 35, 50), 1)
+
         for y in range(0, self.h, 40):
             cv2.line(frame, (0, y), (self.w, y), (25, 35, 50), 1)
-        # Mesa/chÃ£o da clÃ­nica (retÃ¢ngulo inferior)
+
         cv2.rectangle(frame, (0, int(self.h*0.75)), (self.w, self.h), (20, 30, 42), -1)
         cv2.line(frame, (0, int(self.h*0.75)), (self.w, int(self.h*0.75)), (35, 50, 70), 1)
-        # Logo de fundo (marca d'Ã¡gua)
         cv2.putText(frame, "FutureVet Clinic Cam", (int(self.w*0.35), int(self.h*0.95)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (30, 42, 58), 1, cv2.LINE_AA)
 
     def _desenhar_cachorro(self, frame: np.ndarray, cx: int, cy: int, escala: float, cor: tuple):
         s = escala
-        # Corpo (elipse deitada)
+    
         cv2.ellipse(frame, (cx, cy), (int(70*s), int(45*s)), 0, 0, 360, cor, -1)
-        # CabeÃ§a
+        
         hx, hy = cx - int(55*s), cy - int(28*s)
         cv2.ellipse(frame, (hx, hy), (int(30*s), int(26*s)), 0, 0, 360, cor, -1)
-        # Focinho
+        
         cv2.ellipse(frame, (hx - int(22*s), hy + int(6*s)), (int(14*s), int(10*s)), 0, 0, 360,
                     tuple(max(0, c-20) for c in cor), -1)
-        # Olho
+       
         cv2.circle(frame, (hx - int(10*s), hy - int(6*s)), int(4*s), (230,230,230), -1)
         cv2.circle(frame, (hx - int(10*s), hy - int(6*s)), int(2*s), (20,20,20), -1)
-        # Orelhas
+      
         pts = np.array([[hx-int(5*s),hy-int(22*s)],[hx+int(10*s),hy-int(38*s)],[hx+int(20*s),hy-int(18*s)]], np.int32)
         cv2.fillPoly(frame, [pts], tuple(max(0,c-15) for c in cor))
         pts2 = np.array([[hx-int(20*s),hy-int(20*s)],[hx-int(35*s),hy-int(36*s)],[hx-int(18*s),hy-int(8*s)]], np.int32)
         cv2.fillPoly(frame, [pts2], tuple(max(0,c-15) for c in cor))
-        # Pernas
+     
         for dx in [-int(40*s), -int(20*s), int(20*s), int(45*s)]:
             lx = cx + dx
             cv2.rectangle(frame, (lx-int(6*s), cy+int(32*s)), (lx+int(6*s), cy+int(55*s)), cor, -1)
-        # Rabo
+   
         tail_pts = np.array([[cx+int(65*s), cy-int(5*s)],
                               [cx+int(85*s), cy-int(28*s)],
                               [cx+int(90*s), cy-int(10*s)]], np.int32)
         cv2.polylines(frame, [tail_pts], False, cor, int(6*s), cv2.LINE_AA)
-        # Sombra
+    
         cv2.ellipse(frame, (cx, cy+int(48*s)), (int(55*s), int(8*s)), 0, 0, 360, (15,22,32), -1)
 
     def _desenhar_gato(self, frame: np.ndarray, cx: int, cy: int, escala: float, cor: tuple):
         s = escala
-        # Corpo
+      
         cv2.ellipse(frame, (cx, cy), (int(55*s), int(38*s)), 0, 0, 360, cor, -1)
-        # CabeÃ§a (mais redonda)
+      
         hx, hy = cx - int(48*s), cy - int(25*s)
         cv2.circle(frame, (hx, hy), int(26*s), cor, -1)
-        # Focinho triangular
+   
         cv2.ellipse(frame, (hx - int(16*s), hy + int(8*s)), (int(10*s), int(7*s)), 0, 0, 360,
                     tuple(min(255, c+30) for c in cor), -1)
-        # Olhos amendoados
+  
         for ox in [-int(8*s), int(8*s)]:
             cv2.ellipse(frame, (hx+ox, hy-int(4*s)), (int(7*s), int(4*s)), 0, 0, 360, (200,230,200), -1)
             cv2.ellipse(frame, (hx+ox, hy-int(4*s)), (int(3*s), int(4*s)), 0, 0, 360, (15,15,15), -1)
-        # Orelhas pontudas
+
         pts1 = np.array([[hx-int(8*s),hy-int(22*s)],[hx-int(22*s),hy-int(44*s)],[hx+int(8*s),hy-int(22*s)]], np.int32)
         pts2 = np.array([[hx+int(6*s),hy-int(22*s)],[hx+int(20*s),hy-int(44*s)],[hx+int(24*s),hy-int(18*s)]], np.int32)
         cv2.fillPoly(frame, [pts1, pts2], tuple(max(0,c-20) for c in cor))
-        # Rabo curvo
+
         for i in range(20):
             angle = math.pi * i / 20
             rx = cx + int(50*s) + int(30*s * math.cos(angle))
             ry = cy - int(5*s) - int(25*s * math.sin(angle))
             cv2.circle(frame, (rx, ry), int(4*s), cor, -1)
-        # Pernas
+ 
         for dx in [-int(32*s), -int(15*s), int(15*s), int(35*s)]:
             lx = cx + dx
             cv2.rectangle(frame, (lx-int(5*s), cy+int(28*s)), (lx+int(5*s), cy+int(48*s)), cor, -1)
-        # Sombra
+
         cv2.ellipse(frame, (cx, cy+int(42*s)), (int(45*s), int(7*s)), 0, 0, 360, (15,22,32), -1)
 
     def get_frame(self) -> tuple[np.ndarray, list[dict]]:
@@ -288,7 +229,7 @@ class DemoScene:
             y1 = max(0, cy - bh//2)
             x2 = min(self.w, cx + bw//2)
             y2 = min(self.h, cy + bh//2)
-            # ConfianÃ§a oscilante (simula inferÃªncia real)
+
             conf = 0.88 + math.sin(self.t * 0.05 + cx) * 0.06
             deteccoes.append({
                 "classe": pet["tipo"],
@@ -298,10 +239,6 @@ class DemoScene:
 
         return frame, deteccoes
 
-
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# PIPELINE PRINCIPAL
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class FutureVetVision:
     def __init__(self, cfg: dict, forcar_demo: bool = False):
         self.cfg = cfg
@@ -315,7 +252,6 @@ class FutureVetVision:
         self.forcar_demo = forcar_demo
         os.makedirs(cfg["pasta_snapshots"], exist_ok=True)
 
-        # Tenta YOLO
         self.model = None
         self.modo_detector = "simulado"
         if not forcar_demo:
@@ -327,7 +263,6 @@ class FutureVetVision:
             except Exception:
                 print("â„¹ï¸  YOLOv8 nÃ£o disponÃ­vel â€” usando detector de simulaÃ§Ã£o.")
 
-    # â”€â”€ DetecÃ§Ã£o â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _detectar(self, frame: np.ndarray) -> list[dict]:
         if self.model:
             res = self.model(frame, conf=self.cfg["confianca_minima"],
@@ -342,7 +277,7 @@ class FutureVetVision:
                     out.append({"classe": nome, "confianca": float(box.conf[0]),
                                 "box": (x1,y1,x2,y2)})
             return out
-        return []   # sem YOLO â†’ detecÃ§Ã£o vem do DemoScene
+        return [] 
 
     def _raca(self, classe: str, box_area: float, frame_area: float) -> str:
         prop = box_area / max(frame_area, 1)
@@ -350,7 +285,6 @@ class FutureVetVision:
         opcoes = RACAS.get(classe, {}).get(porte, ["Indefinido"])
         return opcoes[self.frame_count % len(opcoes)]
 
-    # â”€â”€ Desenho â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     def _draw(self, frame: np.ndarray, deteccoes: list[dict]) -> np.ndarray:
         h, w = frame.shape[:2]
         frame_area = h * w
@@ -359,7 +293,6 @@ class FutureVetVision:
         labels = [d["classe"] for d in deteccoes]
         ids_map = self.tracker.update(rects, labels)
 
-        # ConstrÃ³i mapa centroid â†’ id
         c2id = {(int(v[0]), int(v[1])): k for k,v in ids_map.items()}
 
         for det in deteccoes:
@@ -369,7 +302,6 @@ class FutureVetVision:
             cor = COR.get(cls, COR["default"])
             cx, cy = (x1+x2)//2, (y1+y2)//2
 
-            # ID mais prÃ³ximo
             pid = min(c2id, key=lambda k: (k[0]-cx)**2+(k[1]-cy)**2, default=None)
             pid = c2id.get(pid)
             raca = self._raca(cls, (x2-x1)*(y2-y1), frame_area)
@@ -378,18 +310,16 @@ class FutureVetVision:
                 self.info_por_id[pid] = {"classe": cls, "raca": raca,
                     "confianca": conf, "ts": datetime.now().isoformat()}
 
-            # â”€â”€ Cantos HUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             L = 22
             for px, py, dx, dy in [(x1,y1,1,1),(x2,y1,-1,1),(x1,y2,1,-1),(x2,y2,-1,-1)]:
                 cv2.line(frame, (px, py), (px+dx*L, py), cor, 2)
                 cv2.line(frame, (px, py), (px, py+dy*L), cor, 2)
 
-            # RetÃ¢ngulo fill leve
+
             ov = frame.copy()
             cv2.rectangle(ov, (x1,y1), (x2,y2), cor, 1)
             cv2.addWeighted(ov, 0.25, frame, 0.75, 0, frame)
 
-            # â”€â”€ Trilha â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             if pid is not None and pid in self.tracker.history:
                 traj = self.tracker.history[pid]
                 for i in range(1, len(traj)):
@@ -398,11 +328,9 @@ class FutureVetVision:
                     cv2.line(frame, tuple(map(int,traj[i-1])), tuple(map(int,traj[i])),
                              c_fade, 1, cv2.LINE_AA)
 
-            # â”€â”€ CentrÃ³ide â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             cv2.circle(frame, (cx,cy), 5, cor, -1)
             cv2.circle(frame, (cx,cy), 9, cor, 1)
 
-            # â”€â”€ Label box â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             id_txt = f"ID#{pid}" if pid is not None else "ID#?"
             l1 = f"{id_txt} Â· {cls.upper()} Â· {conf:.0%}"
             l2 = f"RaÃ§a estimada: {raca}"
@@ -419,13 +347,11 @@ class FutureVetVision:
             cv2.putText(frame, l2, (x1+6, ly+31), cv2.FONT_HERSHEY_SIMPLEX,
                         0.36, COR["white"], 1, cv2.LINE_AA)
 
-            # â”€â”€ Barra de confianÃ§a â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             bx, by = x1, y2 + (4 if y2 + 14 < h else -14)
             bw_total = x2 - x1
             cv2.rectangle(frame, (bx, by), (bx+bw_total, by+6), COR["surface"], -1)
             cv2.rectangle(frame, (bx, by), (bx+int(bw_total*conf), by+6), cor, -1)
 
-        # â”€â”€ HUD superior â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         ov2 = frame.copy()
         cv2.rectangle(ov2, (0,0), (w,38), COR["bg"], -1)
         cv2.addWeighted(ov2, 0.88, frame, 0.12, 0, frame)
@@ -444,7 +370,6 @@ class FutureVetVision:
                     (w - 505, 26), cv2.FONT_HERSHEY_SIMPLEX, 0.36,
                     (50,60,80), 1, cv2.LINE_AA)
 
-        # â”€â”€ Painel lateral de IDs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if deteccoes:
                 px = w - 195
                 ph = 52 * len(deteccoes) + 12

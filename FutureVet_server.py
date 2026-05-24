@@ -1,25 +1,3 @@
-"""
-FutureVet – Servidor HTTP + Bridge MQTT
-=======================================
-FIAP · Disruptive Architectures: IoT, IoB & Generative IA · 1º Sprint 2025
-
-COMO FUNCIONA:
-  1. Assina o tópico MQTT 'FutureVet/sensors/#' no broker HiveMQ
-     → recebe dados REAIS do Wokwi (ESP32-S3) em tempo real
-  2. Se o Wokwi não estiver rodando, usa simulador local como fallback
-  3. Expõe tudo via HTTP REST para o dashboard consumir via fetch()
-
-RODAR:
-    pip install paho-mqtt
-    python FutureVet_server.py
-
-ENDPOINTS:
-    GET /api/latest/{pet_id}    → leitura mais recente
-    GET /api/history/{pet_id}   → histórico da sessão
-    GET /api/readings            → todas as leituras recentes
-    GET /api/status              → diagnóstico da conexão
-"""
-
 import json
 import math
 import random
@@ -49,11 +27,6 @@ SOURCE_STATUS   = {"mqtt": False, "fallback": True, "last_mqtt_msg": None}
 TICK            = 0
 
 def start_mqtt_bridge():
-    """
-    Conecta ao HiveMQ e assina FutureVet/sensors/#.
-    Quando o Wokwi publica, os dados chegam aqui e vão pro buffer.
-    Roda em thread separada; falha silenciosamente (fallback assume).
-    """
     try:
         import paho.mqtt.client as mqtt
     except ImportError:
@@ -76,7 +49,6 @@ def start_mqtt_bridge():
             print(f"[MQTT] Desconectado inesperadamente (rc={rc}) – reconectando...")
 
     def on_message(client, userdata, msg):
-        """Chegou mensagem do Wokwi – processa e armazena no buffer."""
         try:
             payload = json.loads(msg.payload.decode())
 
@@ -172,10 +144,6 @@ def simulate_reading(pet_id: str, tick: int) -> dict:
 
 
 def fallback_loop(interval: float = 3.0):
-    """
-    Gera leituras locais SOMENTE para pets que não receberam
-    dados do Wokwi nos últimos 10 segundos.
-    """
     global TICK
     print("[Fallback] Simulador local iniciado (complementa Wokwi quando offline)")
     while True:

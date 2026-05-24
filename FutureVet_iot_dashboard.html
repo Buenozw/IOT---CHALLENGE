@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -40,7 +40,6 @@
     overflow-x: hidden;
   }
 
-  /* ── Sidebar ── */
   .sidebar {
     width: var(--sidebar-w);
     min-height: 100vh;
@@ -79,7 +78,6 @@
   .nav-btn.active { background: var(--accent-bg); color: var(--accent); }
   .nav-btn.logout { margin-top: auto; }
 
-  /* ── Main wrapper ── */
   .main {
     margin-left: var(--sidebar-w);
     flex: 1;
@@ -90,7 +88,6 @@
     min-height: 100vh;
   }
 
-  /* ── Topbar ── */
   .topbar {
     display: flex;
     align-items: flex-start;
@@ -154,7 +151,6 @@
     border-radius: var(--r-sm); min-width: 72px; text-align: center;
   }
 
-  /* ── Card base ── */
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -171,7 +167,7 @@
     text-transform: uppercase; letter-spacing: 0.8px;
     display: flex; align-items: center; gap: 6px;
   }
-  /* ── Stats grid ── */
+
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr) 2fr;
@@ -212,27 +208,23 @@
 
   .stat-sub { font-size: 11px; color: var(--muted); margin-top: 5px; }
 
-  /* Battery */
   .batt-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
   .batt-track { flex: 1; height: 4px; border-radius: 2px; background: var(--surface2); }
   .batt-fill  { height: 100%; border-radius: 2px; background: var(--green); transition: width .5s; }
   .batt-pct   { font-size: 11px; color: var(--muted); font-weight: 500; min-width: 30px; }
 
-  /* ── Chart card ── */
   .chart-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
   svg.linechart { width: 100%; overflow: visible; }
   .cl { font-family: 'Inter', sans-serif; font-size: 9px; fill: var(--muted); }
   .chart-xrow { display: flex; justify-content: space-between; margin-top: 6px; }
   .chart-xl   { font-size: 10px; color: var(--muted); }
 
-  /* ── Middle grid ── */
   .mid-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 16px;
   }
 
-  /* Alerts */
   .alert-list { display: flex; flex-direction: column; gap: 7px; }
   .alert-item {
     display: flex; align-items: flex-start; gap: 10px;
@@ -245,7 +237,6 @@
   .alert-title { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
   .alert-sub   { font-size: 10px; color: var(--muted); }
 
-  /* Heatmap */
   .hm-lbl-row { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 4px; }
   .hml { font-size: 9px; color: var(--muted); text-align: center; }
   .hm-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
@@ -258,7 +249,6 @@
   .hm-legend { display: flex; align-items: center; gap: 5px; margin-top: 10px; }
   .hm-legend span { font-size: 10px; color: var(--muted); }
 
-  /* Health score */
   .score-wrap {
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
@@ -274,7 +264,6 @@
   .score-s { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
   .score-status { font-size: 11px; color: var(--muted); text-align: center; }
 
-  /* ── Log table ── */
   .log-hd-row {
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
@@ -312,7 +301,6 @@
   }
   .topic-display strong { color: var(--accent); font-weight: 500; }
 
-  /* ── Footer ── */
   .footer {
     display: flex; align-items: center; justify-content: space-between;
     padding-top: 10px; border-top: 1px solid var(--border);
@@ -321,7 +309,6 @@
   .footer-info { display: flex; gap: 20px; flex-wrap: wrap; }
   .footer-info strong { color: var(--secondary); }
 
-  /* ── Responsive ── */
   @media(max-width:1280px){
     .stats-grid { grid-template-columns: repeat(2,1fr); }
   }
@@ -366,7 +353,6 @@
 <!-- ════════════ MAIN ════════════ -->
 <div class="main">
 
-  <!-- ── Topbar ── -->
   <div class="topbar">
     <div>
       <div class="topbar-title">FutureVet <span>IoT</span> Dashboard</div>
@@ -394,7 +380,6 @@
     </div>
   </div>
 
-  <!-- ── Stats Grid ── -->
   <div class="stats-grid">
 
     <!-- Temperatura -->
@@ -590,7 +575,7 @@
     <div>FIAP · Disruptive Architectures · IoT · 1º Sprint 2025</div>
   </div>
 
-</div><!-- /main -->
+</div>
 
 <script>
 const API_BASE = 'http://localhost:8080';

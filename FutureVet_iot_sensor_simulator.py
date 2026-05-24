@@ -1,20 +1,4 @@
-﻿"""
-FutureVet IoT Sensor Simulator
-=============================
-Simulates a wearable pet health collar with:
-  - Temperature sensor (body temp)
-  - Accelerometer (activity level)
-  - Heart rate sensor
-  - GPS location (mock)
-
-Publishes data via MQTT (paho-mqtt) and also via HTTP REST.
-If MQTT broker is unavailable, falls back to HTTP-only mode.
-
-Dependencies:
-    pip install paho-mqtt requests
-"""
-
-import json
+﻿import json
 import math
 import random
 import time
@@ -31,7 +15,6 @@ PET_PROFILES = {
 }
 
 def simulate_reading(pet_name: str, tick: int) -> dict:
-    """Generate a realistic sensor reading with daily activity pattern."""
     profile = PET_PROFILES[pet_name]
 
     
@@ -76,7 +59,6 @@ def simulate_reading(pet_name: str, tick: int) -> dict:
     }
 
 def try_mqtt_publish(payload: dict, topic: str) -> bool:
-    """Attempt to publish via MQTT. Returns True if successful."""
     try:
         import paho.mqtt.client as mqtt
         client = mqtt.Client(client_id="FutureVet-collar-sim")
@@ -90,17 +72,12 @@ def try_mqtt_publish(payload: dict, topic: str) -> bool:
 READINGS_STORE: list[dict] = []
 
 def http_publish(payload: dict) -> bool:
-    """Store reading locally (simulates POST to /api/readings)."""
     READINGS_STORE.append(payload)
     if len(READINGS_STORE) > 500:
         READINGS_STORE.pop(0)
     return True
 
 def run_sensor_loop(duration_seconds: int = 30, interval_seconds: int = 5):
-    """
-    Run the sensor simulation for `duration_seconds`.
-    Publishes to MQTT when available, always stores locally via HTTP fallback.
-    """
     print("=" * 60)
     print("  FutureVet IoT Sensor Simulator")
     print("  Protocol: MQTT (HiveMQ) with HTTP fallback")
